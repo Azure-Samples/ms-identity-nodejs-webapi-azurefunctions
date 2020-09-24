@@ -34,6 +34,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `Function`        | The Azure function code.                   |
 
 ## Prerequisites
+
 1. You must have Visual Studio Code installed
 2. You must have Azure Functions core tools installed `npm install -g azure-functions-core-tools`
 3. Azure functions VSCode extension (https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
@@ -43,13 +44,14 @@ Outline the file contents of the repository. It helps users navigate the codebas
 Reference: [How to register an app](https://docs.microsoft.com/en-nz/azure/active-directory/develop/quickstart-register-app)
 
 The Azure function acts as a WebAPI. There are a few things to know here.
+
 1. The function app will run on `http://localhost:7071` when you test it locally.
 2. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed in azure
 3. The function exposes an API with app id uri `https://<yournodejsfunction>.<tenant>.onmicrosoft.com`
 
 Note that all these values are configurable to your liking, and they are reflected in the `MyHttpTrigger\index.js` file.
 
-Additionally, you will need a "client" for the Web API. Since this function will serve as a AAD protected Web API, any client that understands standard openid connect flows will work. The usual consent grant principals apply. 
+Additionally, you will need a "client" for the Web API. Since this function will serve as a AAD protected Web API, any client that understands standard openid connect flows will work. The usual consent grant principals apply.
 
 Reference: [Azure Active Directory consent framework](https://docs.microsoft.com/en-us/azure/active-directory/develop/consent-framework)
 
@@ -79,12 +81,13 @@ var clientID = "<appid>";
 var appIdURI = "https://funcapi.<tenantname>.onmicrosoft.com";
 ```
 
- ## Test your function - locally
+## Test your function - locally
 
  1. With the project open in VSCode, just hit F5, or you can also run `func host start` from the CLI.
  2. You will need an access token to call this function. In order to get the access token, open browser in private mode and visit
- ```
- https://login.microsoftonline.com/<tenantname>.onmicrosoft.com/oauth2/v2.0/authorize?response_type=code&client_id=<appid>&redirect_uri=http://localhost:7071/&scope=openid
+
+```console
+ https://login.microsoftonline.com/msaltestingjs.onmicrosoft.com/oauth2/v2.0/authorize?response_type=code&client_id=b08423e6-491a-486b-97fb-eda4cd253948&redirect_uri=http://localhost:7071/&scope=openid
 ```
 
 This will prompt you to perform authentication and consent, and it will return a code in the query string. 
@@ -93,7 +96,7 @@ I am using the client secret of `p@ssword1` as I setup in my scripts above. In p
 
 ``` SHELL
 curl -X POST \
-  https://login.microsoftonline.com/<tenantname>.onmicrosoft.com/oauth2/v2.0/token \
+  https://login.microsoftonline.com/msaltestingjs.onmicrosoft.com/oauth2/v2.0/token \
   -H 'Accept: */*' \
   -H 'Cache-Control: no-cache' \
   -H 'Connection: keep-alive' \
@@ -101,7 +104,7 @@ curl -X POST \
   -H 'Host: login.microsoftonline.com' \
   -H 'accept-encoding: gzip, deflate' \
   -H 'cache-control: no-cache' \
-  -d 'redirect_uri=http%3A%2F%2Flocalhost:7071&client_id=<appid>&grant_type=authorization_code&code=<put code here>&client_secret=p@ssword1&scope=https%3A%2F%funcapi.<tenantname>.onmicrosoft.com%2F/user_impersonation'
+  -d 'redirect_uri=http%3A%2F%2Flocalhost:7071&client_id=b08423e6-491a-486b-97fb-eda4cd253948&grant_type=authorization_code&code=0.AAAAaCGvyxTeckydiPXwU2bb7-YjhLAaSWtIl_vtpM0lOUhFAAA.AQABAAIAAAAGV_bv21oQQ4ROqh0_1-tAtvj7c7LHwFFsQ-ajyEwJoZUgqHcyNkcm4N_mi-yvgdM9t16IjhH9RtClcdbOYi7mzevk31J-_t5R3OnAKislOmtCJSUO7BdaZ4V6DYwSHH3FHD4pe6hXxIaHFYEyOtzYrxEUOM0uZUaJNOtOUSPLsYSBjt_7pspsiSknptn_SU0yzaUh4-OjKQUv0g3dk-jOwFySs1qC1LJXpOpxl_0CurwSfnj78-bJFFsGMQMm24lEDTsFCkU8KgRK07IlLwOoEBGd36-DHkV2X3ZGAgOz_vYoFt4f46a_jRmNnA9kkaO1J6wSKbG2IuDOOgCLmiKdsREA-26D9GE4pXM-SV9ZcIATimlfbgnWakY9njFt2T2moMmftOAU1aiDelJpJ1AyA4EEwM4jUolHP555WDFLEOq9XKNOr5RpqK68HUW_C6fsIlqXVgFbKOyEQfsDw3XKWPZ4l7WuZXWBRtdg6xWPSxHLiNzJTJosL3C44hMdZOdq4BHWCMFP9TBsj8XSdJVg-HblZBo43n-2pEhiK01p8fB0LTZvGKjb4mosA9StRmzRpQgb9qO1NvebDi_2KkeqIAA&client_secret=2eKRaGs6y2_~inbjcNyfgg_76OzaBd_xMM&scope=api%3A%2F%2Fb08423e6-491a-486b-97fb-eda4cd253948/access_as_user'
   ```
  
  3. Once you get the access token, make a GET request to `http://localhost:7071/api` with the access token as a Authorization Bearer header. Verify that you get an output similar to the below. The values marked as ..removed.. will have actual values in your output.
