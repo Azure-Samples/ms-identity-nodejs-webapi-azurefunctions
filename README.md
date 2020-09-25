@@ -1,214 +1,233 @@
 ---
 page_type: sample
 languages:
-- javascript
+  - javascript
 products:
-- nodejs
-- azure
-- azure-active-directory
-name: NodeJS Azure Function Web API secured by Azure AD
-urlFragment: "ms-identity-nodejs-webapi-azurefunctions"
+  - nodejs
+  - azure-functions
+  - azure-active-directory
+name: A NodeJS Azure Function web API secured by Azure AD
+urlFragment: ms-identity-nodejs-webapi-azurefunctions
+description: "This sample demonstrates a NodeJS Azure Function web API secured by Azure AD"
 ---
+# A NodeJS Azure Function web API secured by Azure AD
 
-# NodeJS Azure Function Web API secured by Azure AD
+ 1. [Overview](#overview)
+ 1. [Scenario](#scenario)
+ 1. [Contents](#contents)
+ 1. [Prerequisites](#prerequisites)
+ 1. [Setup](#setup)
+ 1. [Registration](#registration)
+ 1. [Running the sample](#running-the-sample)
+ 1. [Explore the sample](#explore-the-sample)
+ 1. [About the code](#about-the-code)
+ 1. [Deployment](#deployment)
+ 1. [More information](#more-information)
+ 1. [Community Help and Support](#community-help-and-support)
+ 1. [Contributing](#contributing)
+ 1. [Code of Conduct](#code-of-conduct)
 
-This code example demonstrates how to secure an Azure function with Azure AD when the function uses HTTPTrigger and exposes a Web API. The Web API is written using expressjs, and the authentication is provided by passport-azure-ad.
+## Overview
 
-This readme walks you through the steps of setting this code up in your Azure subscription.
+This sample demonstrates how to secure an [Azure Function]() with [Azure Active Directory (Azure AD)]() when the function uses an [HTTPTrigger]() and exposes a web API. The web API is written using the [express.js]() framework, and the authentication is provided by [passport-azure-ad]() library.
 
-While you can develop Azure functions in many ways, such as Visual Studio 2019, Visual Studio Code, etc. this guide shows how to perform the steps using Visual Studio Code.
+## Scenario
+
+1. The client JavaScript SPA application uses the [Microsoft Authentication Library for JavaScript (MSAL.js)]() to obtain a JWT [Access Token]() from **Azure AD**:
+2. The **Access Token** is used as a *bearer* token to authenticate the user when calling the **Azure Function**.
+
+![Overview](./ReadmeFiles/topology.png)
 
 ## Contents
 
-Outline the file contents of the repository. It helps users navigate the codebase, build configuration and any related assets.
-
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `src`             | Sample source code.                        |
-| `.gitignore`      | Define what to ignore at commit time.      |
+| `Function`        | The Azure function source code.            |
+| `AppCreationScripts`| The Azure function source code.            |
+| `ReadmeFiles`     | Images used in readme.md.                  |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `README.md`       | This README file.                          |
+| `SECURITY.md`     | Security disclosures for the sample.       |
 | `LICENSE`         | The license for the sample.                |
-| `images`          | Images used in readme.md.                  |
-| `Function`        | The Azure function code.                   |
 
 ## Prerequisites
 
-1. You must have Visual Studio Code installed
-2. You must have Azure Functions core tools installed `npm install -g azure-functions-core-tools`
-3. Azure functions VSCode extension (https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
+- [Node.js](https://nodejs.org/en/download/) must be installed to run this sample.
+- A modern web browser. This sample uses **ES6** conventions and will not run on **Internet Explorer**.
+- [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
+- [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
+- An **Azure AD** tenant. For more information see: [How to get an Azure AD tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
+- A user account in your **Azure AD**. This sample will not work with a **personal Microsoft account**. Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a personal account and have never created a user account in your directory before, you need to do that now.
+- [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) **NPM** package must be installed *globally* to run this sample.
 
-## Register an AAD App
+## Setup
 
-Reference: [How to register an app](https://docs.microsoft.com/en-nz/azure/active-directory/develop/quickstart-register-app)
+### Step 1: Clone or download this repository
 
-The Azure function acts as a WebAPI. There are a few things to know here.
-
-1. The function app will run on `http://localhost:7071` when you test it locally.
-2. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed in azure
-3. The function exposes an API with app id uri `https://<yournodejsfunction>.<tenant>.onmicrosoft.com`
-
-Note that all these values are configurable to your liking, and they are reflected in the `MyHttpTrigger\index.js` file.
-
-Additionally, you will need a "client" for the Web API. Since this function will serve as a AAD protected Web API, any client that understands standard openid connect flows will work. The usual consent grant principals apply.
-
-Reference: [Azure Active Directory consent framework](https://docs.microsoft.com/en-us/azure/active-directory/develop/consent-framework)
-
-To keep things simple, we will reuse the same app registration as both the client, and the API. This eliminates any need to provide explicit consent. For our code example here, the client will use [auth code flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), for which we will also need a client secret. We are trying to mimic a web app calling this API, and a web app can act as a confidential client.
-
-To setup the app, you can use the below azure CLI script. Note the placeholders demarcated in `<..>` brackets. Make sure to replace them with your environment specific values.
-
-``` SHELL
-az ad app create --display-name "FuncAPI" --credential-description "funcapi" --password "p@ssword1" --reply-urls "http://localhost:7071" --identifier-uris "https://funcapi.<tenantname>.onmicrosoft.com"
-```
-
-For the above registered app, get the app ID
-``` SHELL
-az ad app list --query "[?displayName == 'FuncAPI'].appId"
-```
-
-Also get your tenant ID
-``` SHELL
-az account show --query "tenantId"
-```
-
-Update your index.js with the values per your app registration. Specifically, update the below lines.
-
-``` JavaScript
-var tenantID = "<tenantid>";
-var clientID = "<appid>";
-var appIdURI = "https://funcapi.<tenantname>.onmicrosoft.com";
-```
-
-## Test your function - locally
-
- 1. With the project open in VSCode, just hit F5, or you can also run `func host start` from the CLI.
- 2. You will need an access token to call this function. In order to get the access token, open browser in private mode and visit
+From your shell or command line:
 
 ```console
- https://login.microsoftonline.com/msaltestingjs.onmicrosoft.com/oauth2/v2.0/authorize?response_type=code&client_id=b08423e6-491a-486b-97fb-eda4cd253948&redirect_uri=http://localhost:7071/&scope=openid
+    git clone https://github.com/Azure-Samples/ms-identity-nodejs-webapi-azurefunctions.git
 ```
 
-This will prompt you to perform authentication and consent, and it will return a code in the query string. 
-Use that code in the following request to get an access token, remember to put in the code and client secret.
-I am using the client secret of `p@ssword1` as I setup in my scripts above. In production environments, you want this to be more complex.
+or download and extract the repository .zip file.
 
-``` SHELL
-curl -X POST \
-  https://login.microsoftonline.com/msaltestingjs.onmicrosoft.com/oauth2/v2.0/token \
-  -H 'Accept: */*' \
-  -H 'Cache-Control: no-cache' \
-  -H 'Connection: keep-alive' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -H 'Host: login.microsoftonline.com' \
-  -H 'accept-encoding: gzip, deflate' \
-  -H 'cache-control: no-cache' \
-  -d 'redirect_uri=http%3A%2F%2Flocalhost:7071&client_id=b08423e6-491a-486b-97fb-eda4cd253948&grant_type=authorization_code&code=0.AAAAaCGvyxTeckydiPXwU2bb7-YjhLAaSWtIl_vtpM0lOUhFAAA.AQABAAIAAAAGV_bv21oQQ4ROqh0_1-tAtvj7c7LHwFFsQ-ajyEwJoZUgqHcyNkcm4N_mi-yvgdM9t16IjhH9RtClcdbOYi7mzevk31J-_t5R3OnAKislOmtCJSUO7BdaZ4V6DYwSHH3FHD4pe6hXxIaHFYEyOtzYrxEUOM0uZUaJNOtOUSPLsYSBjt_7pspsiSknptn_SU0yzaUh4-OjKQUv0g3dk-jOwFySs1qC1LJXpOpxl_0CurwSfnj78-bJFFsGMQMm24lEDTsFCkU8KgRK07IlLwOoEBGd36-DHkV2X3ZGAgOz_vYoFt4f46a_jRmNnA9kkaO1J6wSKbG2IuDOOgCLmiKdsREA-26D9GE4pXM-SV9ZcIATimlfbgnWakY9njFt2T2moMmftOAU1aiDelJpJ1AyA4EEwM4jUolHP555WDFLEOq9XKNOr5RpqK68HUW_C6fsIlqXVgFbKOyEQfsDw3XKWPZ4l7WuZXWBRtdg6xWPSxHLiNzJTJosL3C44hMdZOdq4BHWCMFP9TBsj8XSdJVg-HblZBo43n-2pEhiK01p8fB0LTZvGKjb4mosA9StRmzRpQgb9qO1NvebDi_2KkeqIAA&client_secret=2eKRaGs6y2_~inbjcNyfgg_76OzaBd_xMM&scope=api%3A%2F%2Fb08423e6-491a-486b-97fb-eda4cd253948/access_as_user'
-  ```
- 
- 3. Once you get the access token, make a GET request to `http://localhost:7071/api` with the access token as a Authorization Bearer header. Verify that you get an output similar to the below. The values marked as ..removed.. will have actual values in your output.
+> :warning: Given that the name of the sample is quite long, and so are the names of the referenced packages, you might want to clone it in a folder close to the root of your hard drive, to avoid maximum file path length limitations on Windows.
 
- ``` JSON
-{
-    "aud": "https://funcapi.<tenantname>.onmicrosoft.com",
-    "iss": "https://sts.windows.net/<tenantid>/",
-    "iat": 1571732525,
-    "nbf": 1571732525,
-    "exp": 1571736425,
-    "acr": "1",
-    "aio": "..removed..",
-    "amr": [
-        "pwd"
-    ],
-    "appid": "..removed..",
-    "appidacr": "1",
-    "email": "..removed..",
-    "family_name": "..removed..",
-    "given_name": "..removed..",
-    "idp": "..removed..",
-    "ipaddr": "..removed..",
-    "name": "..removed..",
-    "oid": "..removed..",
-    "scp": "user_impersonation",
-    "sub": "..removed..",
-    "tid": "..removed..",
-    "unique_name": "..removed..",
-    "uti": "..removed..",
-    "ver": "1.0"
-}
+### Step 2: Install project dependencies
+
+```console
+    cd ms-identity-nodejs-webapi-azurefunctions
+    cd Function
+    npm install
 ```
 
- ## Test your function - in Azure
+### Register the sample application(s) with your Azure Active Directory tenant
 
- 1. Go ahead and create a function app in azure, ensure that you pick nodejs as it's runtime and under platform features\configuration, set the `WEBSITE_DEFAULT_NODE_VERSION` to 10.14.1 (or whatever version you are using, you can get the version using `node --version` on your local terminal)
- 2. Choose to deploy the function
+There is one project in this sample. To register it, you can:
 
- ![Deploy Function](images/deployfunction.png)
- 
- 3. You will need an access token to call this function. In order to get the access token, open browser in private mode and visit
+- follow the steps below for manually register your apps
+- or use PowerShell scripts that:
+  - **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you.
+  - modify the projects' configuration files.
+
+<details>
+  <summary>Expand this section if you want to use this automation:</summary>
+
+> :warning: If you have never used **Azure AD Powershell** before, we recommend you go through the [App Creation Scripts](./AppCreationScripts/AppCreationScripts.md) once to ensure that your environment is prepared correctly for this step.
+
+1. On Windows, run PowerShell as **Administrator** and navigate to the root of the cloned directory
+1. In PowerShell run:
+
+   ```PowerShell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+   ```
+
+1. Run the script to create your Azure AD application and configure the code of the sample application accordingly.
+1. In PowerShell run:
+
+   ```PowerShell
+   cd .\AppCreationScripts\
+   .\Configure.ps1
+   ```
+
+   > Other ways of running the scripts are described in [App Creation Scripts](./AppCreationScripts/AppCreationScripts.md)
+   > The scripts also provide a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
+
+</details>
+
+### Choose the Azure AD tenant where you want to create your applications
+
+As a first step you'll need to:
+
+1. Sign in to the [Azure portal](https://portal.azure.com).
+1. If your account is present in more than one Azure AD tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD tenant.
+
+### Register the service app (ms-identity-nodejs-webapi-azurefunctions)
+
+1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Select the **App Registrations** blade on the left, then select **New registration**.
+1. In the **Register an application page** that appears, enter your application's registration information:
+   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ms-identity-nodejs-webapi-azurefunctions`.
+   - Under **Supported account types**, select **Accounts in this organizational directory only**.
+1. Select **Register** to create the application.
+1. In the app's registration screen, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
+1. Select **Save** to save your changes.
+1. In the app's registration screen, select the **Expose an API** blade to the left to open the page where you can declare the parameters to expose this app as an Api for which client applications can obtain [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) for.
+The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this Api. To declare an resource URI, follow the following steps:
+   - Click `Set` next to the **Application ID URI** to generate a URI that is unique for this app.
+   - For this sample, accept the proposed Application ID URI (api://{clientId}) by selecting **Save**.
+1. All Apis have to publish a minimum of one [scope](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code) for the client's to obtain an access token successfully. To publish a scope, follow the following steps:
+   - Select **Add a scope** button open the **Add a scope** screen and Enter the values as indicated below:
+        - For **Scope name**, use `access_as_user`.
+        - Select **Admins and users** options for **Who can consent?**
+        - For **Admin consent display name** type `Access ms-identity-nodejs-webapi-azurefunctions`
+        - For **Admin consent description** type `Allows the app to access ms-identity-nodejs-webapi-azurefunctions as the signed-in user.`
+        - For **User consent display name** type `Access ms-identity-nodejs-webapi-azurefunctions`
+        - For **User consent description** type `Allow the application to access ms-identity-nodejs-webapi-azurefunctions on your behalf.`
+        - Keep **State** as **Enabled**
+        - Click on the **Add scope** button on the bottom to save this scope.
+
+#### Configure the service app (ms-identity-nodejs-webapi-azurefunctions) to use your app registration
+
+Open the project in your IDE (like Visual Studio or Visual Studio Code) to configure the code.
+
+> In the steps below, "ClientID" is the same as "Application ID" or "AppId".
+
+1. Open the `Function\auth.json` file.
+1. Find the key `clientID` and replace the existing value with the **application ID** (clientId) of the `ms-identity-nodejs-webapi-azurefunctions` application copied from the Azure portal.
+1. Find the key `tenantID` and replace the existing value with your Azure AD **tenant ID**.
+1. Find the key `audience` and replace the existing value with the **application ID** (clientId) of the `ms-identity-nodejs-webapi-azurefunctions` application copied from the Azure portal.
+1. Find the key `scope` and replace the existing value with the scope `access_as_user`.
+
+## Running the sample
+
+```console
+    cd ms-identity-nodejs-webapi-azurefunctions
+    func start
 ```
-https://login.microsoftonline.com/<tenantname>.onmicrosoft.com/oauth2/v2.0/authorize?response_type=code&client_id=<appid>&redirect_uri=https://<yournodejsfunction>.azurewebsites.net/callback&scope=openid
-```
 
-This will prompt you to perform authentication, and it will return a code. 
-Use that code in the following request to get an access token, remember to put in the code and client secret.
+## Explore the sample
 
-``` SHELL
-curl -X POST \
-  https://login.microsoftonline.com/<tenantname>.onmicrosoft.com/oauth2/v2.0/token \
-  -H 'Accept: */*' \
-  -H 'Cache-Control: no-cache' \
-  -H 'Connection: keep-alive' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -H 'Host: login.microsoftonline.com' \
-  -H 'accept-encoding: gzip, deflate' \
-  -H 'cache-control: no-cache' \
-  -d 'redirect_uri=https%3A%2F%2F<yournodejsfunction>.azurewebsites.net%2Fcallback&client_id=<appid>&grant_type=authorization_code&code=<put code here>&client_secret=<put client secret here>&scope=https%3A%2F%2Fmytestapp.<tenantname>.onmicrosoft.com%2Fuser_impersonation'
-  ```
- 
- 3. Once you get the access token, make a GET request to `https://<yournodejsfunction>.azurewebsites.net/api` with the access token as a Authorization Bearer header. Verify that you get an output similar to the below. The values marked as ..removed.. will have actual values in your output.
+1. The function app will run on `http://localhost:7071` when you test it locally.
+2. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
 
-``` JSON
-{
-    "aud": "https://funcapi.<tenantname>.onmicrosoft.com",
-    "iss": "https://sts.windows.net/<tenantid>/",
-    "iat": 1571732525,
-    "nbf": 1571732525,
-    "exp": 1571736425,
-    "acr": "1",
-    "aio": "..removed..",
-    "amr": [
-        "pwd"
-    ],
-    "appid": "..removed..",
-    "appidacr": "1",
-    "email": "..removed..",
-    "family_name": "..removed..",
-    "given_name": "..removed..",
-    "idp": "..removed..",
-    "ipaddr": "..removed..",
-    "name": "..removed..",
-    "oid": "..removed..",
-    "scp": "user_impersonation",
-    "sub": "..removed..",
-    "tid": "..removed..",
-    "unique_name": "..removed..",
-    "uti": "..removed..",
-    "ver": "1.0"
-}
-```
+You will need a **client** for calling the web API. Refer to the sample: [JavaScript single-page application calling a custom web API with MSAL.js 2.x using the auth code flow with PKCE](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
+
+> :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
+
+## About the code
+
+> - Describe where the code uses auth libraries, or calls the graph
+> - Describe specific aspects (e.g. caching, validation etc.)
+
+## Deployment
+
+### Deployment to Azure Functions
+
+There is one web project in this sample. To deploy it to **Azure Functions**, you'll need to:
+
+- create an **Azure Function**
+- publish the projects to the **Azure Functions**, and
+- update its client(s) to call the deployed function instead of the local environment.
+
+Follow the instructions here to deploy your **Azure Function** app via **VS Code Azure Tools Extension**: [Tutorial: Deploy a Functions app](https://docs.microsoft.com/azure/developer/javascript/tutorial-vscode-serverless-node-04).
+
+## More information
+
+- [Microsoft identity platform (Azure Active Directory for developers)](https://docs.microsoft.com/azure/active-directory/develop/)
+- [Overview of Microsoft Authentication Library (MSAL)](https://docs.microsoft.com/azure/active-directory/develop/msal-overview)
+- [Quickstart: Register an application with the Microsoft identity platform (Preview)](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app)
+- [Quickstart: Configure a client application to access web APIs (Preview)](https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-access-web-apis)
+- [Understanding Azure AD application consent experiences](https://docs.microsoft.com/azure/active-directory/develop/application-consent-experience)
+- [Understand user and admin consent](https://docs.microsoft.com/azure/active-directory/develop/howto-convert-app-to-be-multi-tenant#understand-user-and-admin-consent)
+- [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/develop/app-objects-and-service-principals)
+- [National Clouds](https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud#app-registration-endpoints)
+
+- [Initialize client applications using MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-initializing-client-applications)
+- [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+- [Handle MSAL.js exceptions and errors](https://docs.microsoft.com/azure/active-directory/develop/msal-handling-exceptions?tabs=javascript)
+- [Logging in MSAL.js applications](https://docs.microsoft.com/azure/active-directory/develop/msal-logging?tabs=javascript)
+- [Pass custom state in authentication requests using MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request)
+- [Prompt behavior in MSAL.js interactive requests](https://docs.microsoft.com/azure/active-directory/develop/msal-js-prompt-behavior)
+- [Use MSAL.js to work with Azure AD B2C](https://docs.microsoft.com/azure/active-directory/develop/msal-b2c-overview)
+
+- [MSAL code samples](https://docs.microsoft.com/azure/active-directory/develop/sample-v2-code)
+
+For more information about how OAuth 2.0 protocols work in this scenario and other scenarios, see [Authentication Scenarios for Azure AD](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios).
+
+## Community Help and Support
+
+Use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) to get support from the community.
+Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
+Make sure that your questions or comments are tagged with [`azure-active-directory` `azure-ad-b2c` `ms-identity` `adal` `msal`].
+
+If you find a bug in the sample, please raise the issue on [GitHub Issues](../../issues).
+
+To provide a recommendation, visit the following [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory).
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+If you'd like to contribute to this sample, see [CONTRIBUTING.MD](/CONTRIBUTING.md).
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

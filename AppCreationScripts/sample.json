@@ -1,0 +1,44 @@
+{
+    "Sample": {
+      "Title": "NodeJS Azure Function Web API secured by Azure AD",
+      "Level": 200,
+      "Client": "JavaScript SPA",
+      "Service": "Node.js Web Api",
+      "RepositoryUrl": "ms-identity-nodejs-webapi-azurefunctions",
+      "Endpoint": "AAD v2.0"
+    },
+    "AADApps": [
+      {
+        "Id": "service",
+        "Name": "ms-identity-nodejs-webapi-azurefunctions",
+        "Kind": "WebApi",
+        "HomePage": "http://localhost:7071/api",
+        "Audience": "AzureADMyOrg"
+      }
+    ],
+    "CodeConfiguration": [
+      {
+        "App": "service",
+        "SettingKind": "JSON",
+        "SettingFile": "\\..\\Function\\auth.json",
+        "Mappings": [
+          {
+            "key": "clientID",
+            "value": ".AppId"
+          },
+          {
+            "key": "tenantID",
+            "value": "$tenantId"
+          },
+          {
+            "key": "audience",
+            "value": ".AppId"
+          },
+          {
+            "key": "scope",
+            "value": "service.Scope"
+          }
+        ]
+      }
+    ]
+  }
