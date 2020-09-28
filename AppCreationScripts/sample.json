@@ -33,10 +33,6 @@
           {
             "key": "audience",
             "value": ".AppId"
-          },
-          {
-            "key": "scope",
-            "value": "service.Scope"
           }
         ]
       }

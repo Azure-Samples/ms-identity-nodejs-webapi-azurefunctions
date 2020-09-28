@@ -209,7 +209,7 @@ Function ConfigureApplications
    # Update config file for 'service'
    $configFile = $pwd.Path + "\..\Function\auth.json"
    Write-Host "Updating the sample code ($configFile)"
-   $dictionary = @{ "clientID" = $serviceAadApplication.AppId;"tenantID" = $tenantId;"audience" = $serviceAadApplication.AppId;"scope" = ("api://"+$serviceAadApplication.AppId+"/access_as_user") };
+   $dictionary = @{ "clientID" = $serviceAadApplication.AppId;"tenantID" = $tenantId;"audience" = $serviceAadApplication.AppId };
    UpdateTextFile -configFilePath $configFile -dictionary $dictionary
   
    Add-Content -Value "</tbody></table></body></html>" -Path createdApps.html  
