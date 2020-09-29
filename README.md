@@ -10,7 +10,7 @@ name: A NodeJS Azure Function Web API secured by Azure AD
 urlFragment: ms-identity-nodejs-webapi-azurefunctions
 description: "This sample demonstrates a Node.js Azure Function Web API secured by Azure AD"
 ---
-# A NodeJS Azure Function Web API secured by Azure AD
+# A Node.js Azure Function Web API secured by Azure AD
 
  1. [Overview](#overview)
  1. [Scenario](#scenario)
@@ -35,7 +35,7 @@ The sample further utilizes the [azure-function-express] library, which connects
 
 ## Scenario
 
-1. The client JavaScript SPA application uses the [Microsoft Authentication Library for JavaScript (MSAL.js)](https://github.com/AzureAD/microsoft-authentication-library-for-js) to obtain a JWT [Access Token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) from **Azure AD**:
+1. The client JavaScript SPA application uses the [Microsoft Authentication Library for JavaScript (MSAL.js)](https://github.com/AzureAD/microsoft-authentication-library-for-js) to obtain a JWT [Access Token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) from **Azure AD**.
 2. The **Access Token** is used as a *bearer* token to authenticate the user when calling the **Azure Function** app.
 
 ![Overview](./ReadmeFiles/topology.png)
@@ -172,10 +172,10 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     func start
 ```
 
-## Explore the sample
+1. The function app will run on `http://localhost:7071/api` when you test it locally.
+1. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
 
-1. The function app will run on `http://localhost:7071` when you test it locally.
-2. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
+## Explore the sample
 
 You will need a **client** for calling the Web API. Refer to the sample: [JavaScript single-page application calling a custom Web API with MSAL.js 2.x using the auth code flow with PKCE](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
 
@@ -189,8 +189,31 @@ Once you install and register the **client** app, follow the steps below to conf
 
 ## About the code
 
-> - Describe where the code uses auth libraries, or calls the graph
-> - Describe specific aspects (e.g. caching, validation etc.)
+### Function configuration
+
+There are 3 files in the sample that are used to configure the function app:
+
+- `Function/auth.json`
+This file contains the configuration parameters that are used for authentication and token acquisition.
+
+- `Function/host.json`
+This file contains the configuration parameters that are used by the **Azure Functions Core Tools** package in local environment. When deployed, this file will overwritten by **Azure App Services**.
+
+- `Function/MyHttpTrigger/function.json`
+This file contains the configuration parameters for the behavior of the function web api. In particular, it defines the accepted http verbs and the exposed API endpoint.
+
+> :information_source: `{*segments}` parameter is not used and could be anything. For more information, [see](https://github.com/Azure/azure-functions-host/wiki/Http-Functions).
+
+### Token validation
+
+[passport-azure-ad](https://github.com/AzureAD/passport-azure-ad) validates the token against the `issuer`, `scope` and `audience` claims (defined in `BearerStrategy` constructor) using the `passport.authenticate()` API:
+
+```javascript
+    app.get('/api', passport.authenticate('oauth-bearer', { session: false }),
+        (req, res) => {
+            console.log('Validated claims: ', req.authInfo);
+    );
+```
 
 ## Deployment
 

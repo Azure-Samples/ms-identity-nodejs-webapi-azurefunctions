@@ -1,6 +1,6 @@
 {
     "Sample": {
-      "Title": "NodeJS Azure Function Web API secured by Azure AD",
+      "Title": "A Node.js Azure Function Web API secured by Azure AD",
       "Level": 200,
       "Client": "JavaScript SPA",
       "Service": "Node.js Web Api",

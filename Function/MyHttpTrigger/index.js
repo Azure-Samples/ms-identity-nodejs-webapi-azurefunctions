@@ -46,7 +46,7 @@ app.get('/api', passport.authenticate('oauth-bearer', { session: false }),
 
         // Service relies on the name claim.  
         res.status(200).json({
-            'requested-by': req.authInfo['name'],
+            'displayName': req.authInfo['displayName'],
             'issued-by': req.authInfo['iss'],
             'issued-for': req.authInfo['aud'],
             'using-scope': req.authInfo['scp']
