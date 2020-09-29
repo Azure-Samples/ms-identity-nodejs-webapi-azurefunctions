@@ -7,8 +7,8 @@ const createHandler = require('azure-function-express').createHandler;
 const BearerStrategy = require("passport-azure-ad").BearerStrategy;
 
 const options = {
-    identityMetadata: `https://login.microsoftonline.com/${auth.tenantID}/v2.0/.well-known/openid-configuration`,
-    issuer: `https://login.microsoftonline.com/${auth.tenantID}/v2.0`,
+    identityMetadata: `https://${auth.authority}/${auth.tenantID}/${auth.version}/${auth.discovery}`,
+    issuer: `https://${auth.authority}/${auth.tenantID}/${auth.version}`,
     clientID: auth.clientID,
     audience: auth.audience,
     validateIssuer: auth.validateIssuer,
@@ -46,11 +46,10 @@ app.get('/api', passport.authenticate('oauth-bearer', { session: false }),
 
         // Service relies on the name claim.  
         res.status(200).json({
-            'request-for': 'access_token',
-            'requested-by': req.authInfo['name'],
+            'displayName': req.authInfo['displayName'],
             'issued-by': req.authInfo['iss'],
             'issued-for': req.authInfo['aud'],
-            'scope': req.authInfo['scp']
+            'using-scope': req.authInfo['scp']
         });
     }
 );

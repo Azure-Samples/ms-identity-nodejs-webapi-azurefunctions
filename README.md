@@ -6,11 +6,11 @@ products:
   - nodejs
   - azure-functions
   - azure-active-directory
-name: A NodeJS Azure Function web API secured by Azure AD
+name: A NodeJS Azure Function Web API secured by Azure AD
 urlFragment: ms-identity-nodejs-webapi-azurefunctions
-description: "This sample demonstrates a NodeJS Azure Function web API secured by Azure AD"
+description: "This sample demonstrates a Node.js Azure Function Web API secured by Azure AD"
 ---
-# A NodeJS Azure Function web API secured by Azure AD
+# A Node.js Azure Function Web API secured by Azure AD
 
  1. [Overview](#overview)
  1. [Scenario](#scenario)
@@ -29,12 +29,14 @@ description: "This sample demonstrates a NodeJS Azure Function web API secured b
 
 ## Overview
 
-This sample demonstrates how to secure an [Azure Function]() with [Azure Active Directory (Azure AD)]() when the function uses an [HTTPTrigger]() and exposes a web API. The web API is written using the [express.js]() framework, and the authentication is provided by [passport-azure-ad]() library.
+This sample demonstrates how to secure an [Azure Function](https://docs.microsoft.com/azure/azure-functions/functions-overview) with [Azure Active Directory (Azure AD)](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) where the function uses an [HTTPTrigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-http-webhook-trigger) and exposes a Web API. The Web API is written in [Node.js](https://nodejs.org) using the [Express](https://expressjs.com/) framework, and the authentication is provided by [passport-azure-ad](https://github.com/AzureAD/passport-azure-ad) library.
+
+The sample further utilizes the [azure-function-express] library, which connects your **Express** application to an [Azure Function handler](https://docs.microsoft.com/azure/azure-functions/functions-reference-node), allowing you to write **Azure Function** applications using the middlewares that you are **already familiar with**.
 
 ## Scenario
 
-1. The client JavaScript SPA application uses the [Microsoft Authentication Library for JavaScript (MSAL.js)]() to obtain a JWT [Access Token]() from **Azure AD**:
-2. The **Access Token** is used as a *bearer* token to authenticate the user when calling the **Azure Function**.
+1. The client JavaScript SPA application uses the [Microsoft Authentication Library for JavaScript (MSAL.js)](https://github.com/AzureAD/microsoft-authentication-library-for-js) to obtain a JWT [Access Token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) from **Azure AD**.
+2. The **Access Token** is used as a *bearer* token to authenticate the user when calling the **Azure Function** app.
 
 ![Overview](./ReadmeFiles/topology.png)
 
@@ -43,7 +45,7 @@ This sample demonstrates how to secure an [Azure Function]() with [Azure Active 
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
 | `Function`        | The Azure function source code.            |
-| `AppCreationScripts`| The Azure function source code.            |
+| `AppCreationScripts`| The Azure function source code.          |
 | `ReadmeFiles`     | Images used in readme.md.                  |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
@@ -55,10 +57,10 @@ This sample demonstrates how to secure an [Azure Function]() with [Azure Active 
 - [Node.js](https://nodejs.org/en/download/) must be installed to run this sample.
 - A modern web browser. This sample uses **ES6** conventions and will not run on **Internet Explorer**.
 - [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
-- [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
+- [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with **Azure** through **VS Code** interface.
 - An **Azure AD** tenant. For more information see: [How to get an Azure AD tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
 - A user account in your **Azure AD**. This sample will not work with a **personal Microsoft account**. Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a personal account and have never created a user account in your directory before, you need to do that now.
-- [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) **NPM** package must be installed *globally* to run this sample.
+- [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) **NPM** package must be installed *globally* to run this sample (`npm install -g Azure-functions-core-tools`).
 
 ## Setup
 
@@ -134,10 +136,10 @@ As a first step you'll need to:
 1. In the app's registration screen, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
 1. Select **Save** to save your changes.
 1. In the app's registration screen, select the **Expose an API** blade to the left to open the page where you can declare the parameters to expose this app as an Api for which client applications can obtain [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) for.
-The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this Api. To declare an resource URI, follow the following steps:
+The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this APIs. To declare a **resource URI**, follow the following steps:
    - Click `Set` next to the **Application ID URI** to generate a URI that is unique for this app.
    - For this sample, accept the proposed Application ID URI (api://{clientId}) by selecting **Save**.
-1. All Apis have to publish a minimum of one [scope](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code) for the client's to obtain an access token successfully. To publish a scope, follow the following steps:
+1. All APIs have to publish a minimum of one [scope](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code) for the client's to obtain an access token successfully. To publish a scope, follow the following steps:
    - Select **Add a scope** button open the **Add a scope** screen and Enter the values as indicated below:
         - For **Scope name**, use `access_as_user`.
         - Select **Admins and users** options for **Who can consent?**
@@ -147,6 +149,8 @@ The first thing that we need to do is to declare the unique [resource](https://d
         - For **User consent description** type `Allow the application to access ms-identity-nodejs-webapi-azurefunctions on your behalf.`
         - Keep **State** as **Enabled**
         - Click on the **Add scope** button on the bottom to save this scope.
+1. In the app's registration screen, select the **Manifest** blade. Then:
+   - Find the key `"accessTokenAcceptedVersion"` and replace the existing value with **2** i.e. `"accessTokenAcceptedVersion": 2`.
 
 #### Configure the service app (ms-identity-nodejs-webapi-azurefunctions) to use your app registration
 
@@ -164,40 +168,71 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 ```console
     cd ms-identity-nodejs-webapi-azurefunctions
+    cd Function
     func start
 ```
 
+1. The function app will run on `http://localhost:7071/api` when you test it locally.
+1. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
+
 ## Explore the sample
 
-1. The function app will run on `http://localhost:7071` when you test it locally.
-2. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
+You will need a **client** for calling the Web API. Refer to the sample: [JavaScript single-page application calling a custom Web API with MSAL.js 2.x using the auth code flow with PKCE](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
 
 You will need a **client** for calling the web API. Refer to the sample: [Vanilla JavaScript Single-page Application secured with MSAL.js 2.x and calling a Web API secured with the Microsoft Identity Platform](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
 
-Once you install the **client** app, do:
-
 1. Open the `App\apiConfig.js` file.
-1. Find the key `Enter_the_Web_Api_Uri_Here` and replace the existing value with the coordinates of your web API (e.g. `http://localhost:7071/api`).
-1. Find the key `Enter_the_Web_Api_Scope_Here` and replace the existing value with the scopes for your web API (e.g. `api://e767d418-b80b-4568-9754-557f40697fc5/access_as_user`).
+1. Find the key `Enter_the_Web_Api_Uri_Here` and replace the existing value with the coordinates of your Web API (e.g. `http://localhost:7071/api`).
+1. Find the key `Enter_the_Web_Api_Scope_Here` and replace the existing value with the scopes for your Web API (e.g. `api://e767d418-b80b-4568-9754-557f40697fc5/access_as_user`).
 
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
 
 ## About the code
 
-> - Describe where the code uses auth libraries, or calls the graph
-> - Describe specific aspects (e.g. caching, validation etc.)
+### Function configuration
+
+There are 3 files in the sample that are used to configure the function app:
+
+- `Function/auth.json`
+This file contains the configuration parameters that are used for authentication and token acquisition.
+
+- `Function/host.json`
+This file contains the configuration parameters that are used by the **Azure Functions Core Tools** package in local environment. When deployed, this file will overwritten by **Azure App Services**.
+
+- `Function/MyHttpTrigger/function.json`
+This file contains the configuration parameters for the behavior of the function web api. In particular, it defines the accepted http verbs and the exposed API endpoint.
+
+> :information_source: `{*segments}` parameter is not used and could be anything. For more information, [see](https://github.com/Azure/azure-functions-host/wiki/Http-Functions).
+
+### Token validation
+
+[passport-azure-ad](https://github.com/AzureAD/passport-azure-ad) validates the token against the `issuer`, `scope` and `audience` claims (defined in `BearerStrategy` constructor) using the `passport.authenticate()` API:
+
+```javascript
+    app.get('/api', passport.authenticate('oauth-bearer', { session: false }),
+        (req, res) => {
+            console.log('Validated claims: ', req.authInfo);
+    );
+```
 
 ## Deployment
 
 ### Deployment to Azure Functions
 
-There is one web project in this sample. To deploy it to **Azure Functions**, you'll need to:
+There is one web project in this sample. To deploy it to **Function Apps**, you'll need to:
 
-- create an **Azure Function**
-- publish the projects to the **Azure Functions**, and
+- create an **Function App**
+- publish the projects to the **Function Apps**, and
 - update its client(s) to call the deployed function instead of the local environment.
 
 Follow the instructions here to deploy your **Azure Function** app via **VS Code Azure Tools Extension**: [Tutorial: Deploy a Functions app](https://docs.microsoft.com/azure/developer/javascript/tutorial-vscode-serverless-node-04).
+
+> :warning: After deployment, make sure that the [App Service Authentication](https://docs.microsoft.com/azure/app-service/configure-authentication-provider-aad) is turned **off**, as we have manually configured our authentication solution in this sample.
+
+Once you are done, you'll need to update the **client** app to be able to call the deployed **Azure Function**. To do so, follow the steps below:
+
+1. Open the `App\apiConfig.js` file.
+1. Find the key `Enter_the_Web_Api_Uri_Here` and replace the existing value with the coordinates of your Web API (e.g. `https://<yournodejsfunction>.azurewebsites.net/api`).
 
 ## More information
 
