@@ -172,7 +172,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. The function app will run on `http://localhost:7071` when you test it locally.
 2. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
 
-You will need a **client** for calling the web API. Refer to the sample: [JavaScript single-page application calling a custom web API with MSAL.js 2.x using the auth code flow with PKCE](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
+You will need a **client** for calling the web API. Refer to the sample: [Vanilla JavaScript Single-page Application secured with MSAL.js 2.x and calling a Web API secured with the Microsoft Identity Platform](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
 
 Once you install the **client** app, do:
 
