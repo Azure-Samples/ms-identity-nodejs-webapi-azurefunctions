@@ -181,7 +181,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 You will need a **client** for calling the Web API. Refer to the sample: [JavaScript single-page application calling a custom Web API with MSAL.js 2.x using the auth code flow with PKCE](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
 
-Once you install and register the **client** app, follow the steps below to configure it for calling your function:
+You will need a **client** for calling the web API. Refer to the sample: [Vanilla JavaScript Single-page Application secured with MSAL.js 2.x and calling a Web API secured with the Microsoft Identity Platform](https://github.com/Azure-Samples/ms-identity-javascript-callapi).
 
 1. Open the `App\apiConfig.js` file.
 1. Find the key `Enter_the_Web_Api_Uri_Here` and replace the existing value with the coordinates of your Web API (e.g. `http://localhost:7071/api`).
