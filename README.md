@@ -60,7 +60,7 @@ The sample further utilizes the [azure-function-express] library, which connects
 - [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with **Azure** through **VS Code** interface.
 - An **Azure AD** tenant. For more information see: [How to get an Azure AD tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
 - A user account in your **Azure AD**. This sample will not work with a **personal Microsoft account**. Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a personal account and have never created a user account in your directory before, you need to do that now.
-- [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) **NPM** package must be installed *globally* to run this sample (`npm install -g Azure-functions-core-tools`).
+- [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) **NPM** package must be installed *globally* to run this sample (`npm install -g azure-functions-core-tools`).
 
 ## Setup
 
@@ -161,7 +161,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Open the `Function\auth.json` file.
 1. Find the key `clientID` and replace the existing value with the **application ID** (clientId) of the `ms-identity-nodejs-webapi-azurefunctions` application copied from the Azure portal.
 1. Find the key `tenantID` and replace the existing value with your Azure AD **tenant ID**.
-1. Find the key `audience` and replace the existing value with the **application ID** (clientId) of the `ms-identity-nodejs-webapi-azurefunctions` application copied from the Azure portal.
+1. Find the key `audience` and replace the existing value with the **application ID** (clientId) of the `ms-identity-nodejs-webapi-azurefunctions` application copied from the Azure portal (i.e. audience is the same with this application's ID).
 1. Find the key `scope` and replace the existing value with the scope `access_as_user`.
 
 ## Running the sample
@@ -172,8 +172,10 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     func start
 ```
 
-1. The function app will run on `http://localhost:7071/api` when you test it locally.
-1. The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
+> :information_source: While in **VS Code**, you can simply press **F5** to run the application. Make sure that a **VS Code** cache folder `.vscode` exists for configuration.
+
+- The function app will run on `http://localhost:7071/api` when you test it locally.
+- The function app will run on `https://<yournodejsfunction>.azurewebsites.net` when you run it deployed to Azure.
 
 ## Explore the sample
 
@@ -228,6 +230,8 @@ There is one web project in this sample. To deploy it to **Function Apps**, you'
 Follow the instructions here to deploy your **Azure Function** app via **VS Code Azure Tools Extension**: [Tutorial: Deploy a Functions app](https://docs.microsoft.com/azure/developer/javascript/tutorial-vscode-serverless-node-04).
 
 > :warning: After deployment, make sure that the [App Service Authentication](https://docs.microsoft.com/azure/app-service/configure-authentication-provider-aad) is turned **off**, as we have manually configured our authentication solution in this sample.
+
+> :warning: After deployment, navigate to the **CORS** blade on the portal and enable it. Once you do, add your **client** application's domain.
 
 Once you are done, you'll need to update the **client** app to be able to call the deployed **Azure Function**. To do so, follow the steps below:
 
