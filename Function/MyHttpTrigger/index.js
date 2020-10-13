@@ -1,43 +1,56 @@
-const createHandler = require("azure-function-express").createHandler;
-const express = require("express");
+const express = require('express');
 const passport = require('passport');
+const auth = require('../auth.json');
 
-var BearerStrategy = require("passport-azure-ad").BearerStrategy;
+const createHandler = require('azure-function-express').createHandler;
 
-// Modify the below three lines to suit your environment
-var tenantID = "<tenantid>";
-var clientID = "<appid>";
-var appIdURI = "https://funcapi.<tenantname>.onmicrosoft.com";
+const BearerStrategy = require("passport-azure-ad").BearerStrategy;
 
-var options = {
-    identityMetadata: "https://login.microsoftonline.com/" + tenantID + "/v2.0/.well-known/openid-configuration",
-    clientID: clientID,
-    issuer: "https://sts.windows.net/" + tenantID + "/",
-    audience: appIdURI,
-    loggingLevel: "info",
-    passReqToCallback: false
+const options = {
+    identityMetadata: `https://${auth.authority}/${auth.tenantID}/${auth.version}/${auth.discovery}`,
+    issuer: `https://${auth.authority}/${auth.tenantID}/${auth.version}`,
+    clientID: auth.clientID,
+    audience: auth.audience,
+    validateIssuer: auth.validateIssuer,
+    passReqToCallback: auth.passReqToCallback,
+    loggingLevel: auth.loggingLevel,
+    scope: auth.scope
 };
 
-var bearerStrategy = new BearerStrategy(options, function (token, done) {
+const bearerStrategy = new BearerStrategy(options, (token, done) => {
+    // Send user info using the second argument
     done(null, {}, token);
 });
 
 const app = express();
 
 app.use(require('morgan')('combined'));
-app.use(require('body-parser').urlencoded({ "extended": true }));
+
+app.use(require('body-parser').urlencoded({ 'extended': true }));
+
 app.use(passport.initialize());
+
 passport.use(bearerStrategy);
 
-// This is where your API methods are exposed
-app.get(
-    "/api",
-    passport.authenticate("oauth-bearer", { session: false }),
-    function (req, res) {
-        var claims = req.authInfo;
-        console.log("Validated claims: ", JSON.stringify(claims));
-        console.log("body text: ", JSON.stringify(req.body));
-        res.status(200).json(claims);
+// Enable CORS (for local testing only -remove in production/deployment)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Authorization, Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
+
+// Expose and protect API endpoint
+app.get('/api', passport.authenticate('oauth-bearer', { session: false }),
+    (req, res) => {
+        console.log('Validated claims: ', req.authInfo);
+
+        // Service relies on the name claim.  
+        res.status(200).json({
+            'name': req.authInfo['name'],
+            'issued-by': req.authInfo['iss'],
+            'issued-for': req.authInfo['aud'],
+            'using-scope': req.authInfo['scp']
+        });
     }
 );
 
