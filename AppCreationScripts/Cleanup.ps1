@@ -59,6 +59,22 @@ Function Cleanup
     # Removes the applications
     Write-Host "Cleaning-up applications from tenant '$tenantName'"
 
+    Write-Host "Removing 'spa' (ms-identity-javascript-v2) if needed"
+    Get-AzureADApplication -Filter "DisplayName eq 'ms-identity-javascript-v2'"  | ForEach-Object {Remove-AzureADApplication -ObjectId $_.ObjectId }
+    $apps = Get-AzureADApplication -Filter "DisplayName eq 'ms-identity-javascript-v2'"
+    if ($apps)
+    {
+        Remove-AzureADApplication -ObjectId $apps.ObjectId
+    }
+
+    foreach ($app in $apps) 
+    {
+        Remove-AzureADApplication -ObjectId $app.ObjectId
+        Write-Host "Removed ms-identity-javascript-v2.."
+    }
+    # also remove service principals of this app
+    Get-AzureADServicePrincipal -filter "DisplayName eq 'ms-identity-javascript-v2'" | ForEach-Object {Remove-AzureADServicePrincipal -ObjectId $_.Id -Confirm:$false}
+    
     Write-Host "Removing 'service' (ms-identity-nodejs-webapi-azurefunctions) if needed"
     Get-AzureADApplication -Filter "DisplayName eq 'ms-identity-nodejs-webapi-azurefunctions'"  | ForEach-Object {Remove-AzureADApplication -ObjectId $_.ObjectId }
     $apps = Get-AzureADApplication -Filter "DisplayName eq 'ms-identity-nodejs-webapi-azurefunctions'"
