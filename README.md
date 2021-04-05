@@ -31,7 +31,7 @@ description: "This sample demonstrates a Node.js Azure Function Web API secured 
 
 This sample demonstrates how to secure an [Azure Function](https://docs.microsoft.com/azure/azure-functions/functions-overview) with [Azure Active Directory (Azure AD)](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) where the function uses an [HTTPTrigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-http-webhook-trigger) and exposes a Web API. The Web API is written in [Node.js](https://nodejs.org) using the [Express](https://expressjs.com/) framework, and the authentication is provided by [passport-azure-ad](https://github.com/AzureAD/passport-azure-ad) library.
 
-The sample further utilizes the [azure-function-express] library, which connects your **Express** application to an [Azure Function handler](https://docs.microsoft.com/azure/azure-functions/functions-reference-node), allowing you to write **Azure Function** applications using the middlewares that you are **already familiar with**.
+The sample further utilizes the [azure-function-express](https://github.com/yvele/azure-function-express) package, which connects your **Express** application to an [Azure Function handler](https://docs.microsoft.com/azure/azure-functions/functions-reference-node), allowing you to write **Azure Function** applications using the middlewares that you are **already familiar with**.
 
 The sample is coupled with a client Vanilla JavaScript single-page application that will allow you to call and test your function app.
 
